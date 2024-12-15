@@ -1,0 +1,16 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C8A1C7DE-8098-4286-BA99-9F1AECC6FA11}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorPOS.Client", "src\BlazorPOS.Client\BlazorPOS.Client.csproj", "{D63E53E4-A458-4C2F-914D-92F715F58E0E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorPOS.Server", "src\BlazorPOS.Server\BlazorPOS.Server.csproj", "{9A19103F-16F7-4668-BE54-9A1E7A4F7556}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorPOS.Shared", "src\BlazorPOS.Shared\BlazorPOS.Shared.csproj", "{9A19103F-16F7-4668-BE54-9A1E7A4F7557}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{C9A1C7DE-8098-4286-BA99-9F1AECC6FA12}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorPOS.Client.Tests", "tests\BlazorPOS.Client.Tests\BlazorPOS.Client.Tests.csproj", "{D63E53E4-A458-4C2F-914D-92F715F58E0F}"
+EndProject
