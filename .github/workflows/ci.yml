@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    
     steps:
     - uses: actions/checkout@v3
     
@@ -17,12 +17,63 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '8.0.x'
-        
+    
+    - name: Cache NuGet packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+    
     - name: Restore dependencies
       run: dotnet restore
-      
+    
     - name: Build
       run: dotnet build --no-restore --configuration Release
-      
-    - name: Test
-      run: dotnet test --no-build --configuration Release --verbosity normal
+    
+    - name: Test with coverage
+      run: dotnet test --no-build --configuration Release --verbosity normal /p:CollectCoverage=true /p:CoverletOutput=TestResults/ /p:CoverletOutputFormat=opencover
+    
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./tests/BlazorPOS.Client.Tests/TestResults/coverage.opencover.xml
+    
+    - name: Publish WebAssembly App
+      run: dotnet publish src/BlazorPOS.Client/BlazorPOS.Client.csproj -c Release -o publish
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: webapp
+        path: publish/wwwroot
+        
+  deploy-test:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: 'testing'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: webapp
+        
+    # Add deployment steps for test environment here
+    # Example: Azure Static Web Apps, GitHub Pages, etc.
+    
+  deploy-prod:
+    needs: deploy-test
+    runs-on: ubuntu-latest
+    environment: 'production'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: webapp
+        
+    # Add deployment steps for production environment here
