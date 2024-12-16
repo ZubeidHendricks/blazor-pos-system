@@ -1,8 +1,10 @@
 @page "/"
 @using BlazorPOS.Client.Models
 @using BlazorPOS.Client.Services
+@using BlazorPOS.Client.Components
 @inject IProductService ProductService
 @inject CartService CartService
+@inject NavigationManager NavigationManager
 
 <div class="pos-container">
     <div class="pos-left">
@@ -49,16 +51,31 @@
             </div>
             
             <div class="payment-buttons">
-                <button class="btn btn-success" @onclick="ProcessCashPayment">Cash</button>
-                <button class="btn btn-primary" @onclick="ProcessCardPayment">Card</button>
+                <button class="btn btn-success" @onclick="ShowCashPayment">Cash</button>
+                <button class="btn btn-primary" @onclick="ShowCardPayment">Card</button>
             </div>
         </div>
     </div>
 </div>
 
+<CashPaymentDialog 
+    IsVisible="@showCashDialog"
+    Amount="@CartService.Total"
+    OnPaymentComplete="HandlePaymentComplete"
+    OnCancel="() => showCashDialog = false" />
+
+<CardPaymentDialog 
+    IsVisible="@showCardDialog"
+    Amount="@CartService.Total"
+    OnPaymentComplete="HandlePaymentComplete"
+    OnCancel="() => showCardDialog = false" />
+
 @code {
     private string searchTerm = "";
     private List<Product> products;
+    private bool showCashDialog;
+    private bool showCardDialog;
+
     private List<Product> filteredProducts => products?
         .Where(p => string.IsNullOrEmpty(searchTerm) || 
                     p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
@@ -87,13 +104,30 @@
             CartService.RemoveItem(item);
     }
 
-    private async Task ProcessCashPayment()
+    private void ShowCashPayment()
     {
-        // TODO: Implement cash payment logic
+        showCashDialog = true;
     }
 
-    private async Task ProcessCardPayment()
+    private void ShowCardPayment()
     {
-        // TODO: Implement card payment logic
+        showCardDialog = true;
+    }
+
+    private async Task HandlePaymentComplete(bool success)
+    {
+        showCashDialog = false;
+        showCardDialog = false;
+
+        if (success)
+        {
+            CartService.Clear();
+            await Task.Delay(500); // Give time for UI to update
+            NavigationManager.NavigateTo("/receipt");
+        }
+        else
+        {
+            // TODO: Show error message
+        }
     }
 }
