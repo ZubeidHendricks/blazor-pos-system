@@ -1,0 +1,36 @@
+@page "/"
+
+<div class="pos-container">
+    <div class="pos-header">
+        <h1>Point of Sale System</h1>
+        <div class="user-info">
+            <span>@CurrentUser.Name</span>
+            <button @onclick="Logout">Logout</button>
+        </div>
+    </div>
+
+    <div class="pos-main-content">
+        <div class="left-panel">
+            <ProductSearchComponent />
+            <ProductCategoriesComponent />
+        </div>
+
+        <div class="right-panel">
+            <ShoppingCartComponent />
+            <PaymentOptionsComponent />
+        </div>
+    </div>
+
+    <div class="pos-footer">
+        <StatusBarComponent />
+    </div>
+</div>
+
+@code {
+    private User CurrentUser { get; set; }
+
+    private void Logout()
+    {
+        // Implement logout logic
+    }
+}

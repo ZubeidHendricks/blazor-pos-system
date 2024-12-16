@@ -1,0 +1,34 @@
+.pos-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.pos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: #f8f9fa;
+}
+
+.pos-main-content {
+    display: flex;
+    flex-grow: 1;
+}
+
+.left-panel {
+    width: 70%;
+    padding: 1rem;
+}
+
+.right-panel {
+    width: 30%;
+    padding: 1rem;
+    background-color: #f1f3f5;
+}
+
+.pos-footer {
+    padding: 0.5rem;
+    background-color: #e9ecef;
+}
