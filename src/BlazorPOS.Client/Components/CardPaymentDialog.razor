@@ -1,0 +1,47 @@
+@using BlazorPOS.Client.Services
+@inject PaymentService PaymentService
+
+<div class="payment-dialog @(IsVisible ? "show" : "")">
+    <div class="dialog-content">
+        <h3>Card Payment</h3>
+        
+        <div class="form-group">
+            <label>Total Amount:</label>
+            <input type="text" class="form-control" value="@Amount.ToString("C2")" readonly />
+        </div>
+
+        <div class="payment-status">
+            @if (isProcessing)
+            {
+                <div class="spinner"></div>
+                <p>Processing payment...</p>
+            }
+            else
+            {
+                <p>Please swipe or insert card</p>
+            }
+        </div>
+
+        <div class="dialog-buttons">
+            <button class="btn btn-secondary" @onclick="OnCancel" disabled="@isProcessing">Cancel</button>
+            <button class="btn btn-primary" @onclick="ProcessPayment" disabled="@isProcessing">Process Payment</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public decimal Amount { get; set; }
+    [Parameter] public EventCallback<bool> OnPaymentComplete { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private bool isProcessing;
+
+    private async Task ProcessPayment()
+    {
+        isProcessing = true;
+        var success = await PaymentService.ProcessCardPayment(Amount);
+        isProcessing = false;
+        await OnPaymentComplete.InvokeAsync(success);
+    }
+}

@@ -1,0 +1,50 @@
+@using BlazorPOS.Client.Services
+@inject PaymentService PaymentService
+
+<div class="payment-dialog @(IsVisible ? "show" : "")">
+    <div class="dialog-content">
+        <h3>Cash Payment</h3>
+        
+        <div class="form-group">
+            <label>Total Amount:</label>
+            <input type="text" class="form-control" value="@Amount.ToString("C2")" readonly />
+        </div>
+
+        <div class="form-group">
+            <label>Tendered Amount:</label>
+            <input type="number" class="form-control" @bind="tenderedAmount" step="0.01" />
+        </div>
+
+        <div class="form-group">
+            <label>Change:</label>
+            <input type="text" class="form-control" value="@(GetChange().ToString("C2"))" readonly />
+        </div>
+
+        <div class="dialog-buttons">
+            <button class="btn btn-secondary" @onclick="OnCancel">Cancel</button>
+            <button class="btn btn-primary" @onclick="ProcessPayment" disabled="@(!CanProcessPayment())">Complete Payment</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public decimal Amount { get; set; }
+    [Parameter] public EventCallback<bool> OnPaymentComplete { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private decimal tenderedAmount;
+
+    private decimal GetChange() => tenderedAmount - Amount;
+
+    private bool CanProcessPayment() => tenderedAmount >= Amount;
+
+    private async Task ProcessPayment()
+    {
+        if (CanProcessPayment())
+        {
+            var success = await PaymentService.ProcessCashPayment(Amount, tenderedAmount);
+            await OnPaymentComplete.InvokeAsync(success);
+        }
+    }
+}
