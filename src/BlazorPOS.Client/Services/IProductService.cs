@@ -1,4 +1,4 @@
-using BlazorPOS.Client.Models;
+using BlazorPOS.Shared.Models;
 
 namespace BlazorPOS.Client.Services
 {

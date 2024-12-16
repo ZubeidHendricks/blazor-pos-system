@@ -1,4 +1,5 @@
-using BlazorPOS.Client.Models;
+using BlazorPOS.Shared.Models;
+using System.Net.Http.Json;
 
 namespace BlazorPOS.Client.Services
 {
@@ -15,16 +16,15 @@ namespace BlazorPOS.Client.Services
         {
             try
             {
-                return await _httpClient.GetFromJsonAsync<List<Product>>("api/products");
+                return await _httpClient.GetFromJsonAsync<List<Product>>("api/products") ?? new List<Product>();
             }
             catch
             {
-                // TODO: Add proper error handling
                 return new List<Product>();
             }
         }
         
-        public async Task<Product> GetProductByIdAsync(int id)
+        public async Task<Product?> GetProductByIdAsync(int id)
         {
             try
             {
@@ -32,12 +32,11 @@ namespace BlazorPOS.Client.Services
             }
             catch
             {
-                // TODO: Add proper error handling
                 return null;
             }
         }
         
-        public async Task<Product> GetProductByBarcodeAsync(string barcode)
+        public async Task<Product?> GetProductByBarcodeAsync(string barcode)
         {
             try
             {
@@ -45,7 +44,6 @@ namespace BlazorPOS.Client.Services
             }
             catch
             {
-                // TODO: Add proper error handling
                 return null;
             }
         }
@@ -59,7 +57,6 @@ namespace BlazorPOS.Client.Services
             }
             catch
             {
-                // TODO: Add proper error handling
                 return false;
             }
         }
