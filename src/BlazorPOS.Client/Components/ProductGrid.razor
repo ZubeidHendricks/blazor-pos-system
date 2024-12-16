@@ -1,125 +1,82 @@
 @using BlazorPOS.Shared.Models
+@using BlazorPOS.Client.Services
+@inject IProductService ProductService
 
-<div class="container-fluid p-4">
-    <div class="row mb-4">
-        <div class="col">
-            <div class="input-group">
-                <input 
-                    type="text" 
-                    class="form-control" 
-                    placeholder="Search products..." 
-                    @bind-value="searchTerm" 
-                    @bind-value:event="oninput"
-                    @onkeyup="HandleSearch" />
-                <button class="btn btn-primary" @onclick="HandleSearch">
-                    <i class="fas fa-search"></i> Search
-                </button>
-            </div>
-        </div>
+<div class="product-grid-container">
+    <div class="search-box">
+        <input type="text" 
+               @bind-value="searchTerm" 
+               @bind-value:event="oninput"
+               placeholder="Search products..." 
+               class="form-control" />
     </div>
 
-    <div class="row g-4">
-        @foreach (var product in filteredProducts)
+    <div class="category-filter">
+        <select @bind="selectedCategory" class="form-control">
+            <option value="">All Categories</option>
+            @foreach (var category in categories)
+            {
+                <option value="@category">@category</option>
+            }
+        </select>
+    </div>
+
+    <div class="product-grid">
+        @if (filteredProducts != null)
         {
-            <div class="col-md-3">
-                <div class="card h-100 product-card" @onclick="() => OnProductSelected(product)">
-                    <div class="card-body">
-                        <h5 class="card-title">@product.Name</h5>
-                        <p class="card-text">@product.Description</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="price">$@product.Price.ToString("F2")</span>
-                            <span class="stock @(product.StockQuantity > 0 ? "text-success" : "text-danger")">
-                                Stock: @product.StockQuantity
-                            </span>
-                        </div>
+            foreach (var product in filteredProducts)
+            {
+                <div class="product-card" @onclick="() => OnProductSelected.InvokeAsync(product)">
+                    <div class="product-info">
+                        <h4>@product.Name</h4>
+                        <p class="price">@product.Price.ToString("C2")</p>
+                        <p class="stock @(product.Stock <= 5 ? "low-stock" : "")">Stock: @product.Stock</p>
                     </div>
                 </div>
+            }
+        }
+        else
+        {
+            <div class="loading-products">
+                <span class="spinner"></span>
+                <p>Loading products...</p>
             </div>
         }
     </div>
 </div>
 
-<style>
-    .product-card {
-        cursor: pointer;
-        transition: all 0.2s ease-in-out;
-    }
-
-    .product-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-
-    .price {
-        font-size: 1.2rem;
-        font-weight: bold;
-        color: #2c3e50;
-    }
-</style>
-
 @code {
-    private string searchTerm = "";
-    private List<Product> products = new();
-    private List<Product> filteredProducts => string.IsNullOrWhiteSpace(searchTerm) 
-        ? products 
-        : products.Where(p => 
-            p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || 
-            p.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
-          ).ToList();
-
     [Parameter]
-    public EventCallback<Product> OnProductClicked { get; set; }
+    public EventCallback<Product> OnProductSelected { get; set; }
 
-    protected override void OnInitialized()
+    private List<Product> products;
+    private string searchTerm = "";
+    private string selectedCategory = "";
+    private List<string> categories = new();
+
+    private IEnumerable<Product> filteredProducts =>
+        products?.Where(p =>
+            (string.IsNullOrEmpty(searchTerm) ||
+             p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) &&
+            (string.IsNullOrEmpty(selectedCategory) ||
+             p.Category == selectedCategory)
+        );
+
+    protected override async Task OnInitializedAsync()
     {
-        // Test data
-        products = new List<Product>
-        {
-            new Product 
-            { 
-                Id = 1, 
-                Name = "Coffee", 
-                Description = "Fresh brewed coffee",
-                Price = 2.99m,
-                StockQuantity = 100
-            },
-            new Product 
-            { 
-                Id = 2, 
-                Name = "Croissant", 
-                Description = "Freshly baked croissant",
-                Price = 3.49m,
-                StockQuantity = 25
-            },
-            new Product 
-            { 
-                Id = 3, 
-                Name = "Sandwich", 
-                Description = "Classic club sandwich",
-                Price = 6.99m,
-                StockQuantity = 15
-            },
-            new Product 
-            { 
-                Id = 4, 
-                Name = "Salad", 
-                Description = "Garden fresh salad",
-                Price = 5.99m,
-                StockQuantity = 20
-            }
-        };
+        await LoadProducts();
     }
 
-    private async Task HandleSearch()
+    private async Task LoadProducts()
     {
-        await InvokeAsync(StateHasChanged);
-    }
-
-    private async Task OnProductSelected(Product product)
-    {
-        if (OnProductClicked.HasDelegate)
+        products = await ProductService.GetProductsAsync();
+        if (products != null)
         {
-            await OnProductClicked.InvokeAsync(product);
+            categories = products
+                .Select(p => p.Category)
+                .Distinct()
+                .OrderBy(c => c)
+                .ToList();
         }
     }
 }
