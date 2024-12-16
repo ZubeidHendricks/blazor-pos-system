@@ -1,16 +1,25 @@
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C8A1C7DE-8098-4286-BA99-9F1AECC6FA11}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorPOS.Client", "src\BlazorPOS.Client\BlazorPOS.Client.csproj", "{1B2B4C3D-5E6F-7A8B-9C0D-1E2F3A4B5C6D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorPOS.Client", "src\BlazorPOS.Client\BlazorPOS.Client.csproj", "{D63E53E4-A458-4C2F-914D-92F715F58E0E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorPOS.Shared", "src\BlazorPOS.Shared\BlazorPOS.Shared.csproj", "{2C3D4E5F-6A7B-8C9D-0E1F-2A3B4C5D6E7F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorPOS.Server", "src\BlazorPOS.Server\BlazorPOS.Server.csproj", "{9A19103F-16F7-4668-BE54-9A1E7A4F7556}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorPOS.Shared", "src\BlazorPOS.Shared\BlazorPOS.Shared.csproj", "{9A19103F-16F7-4668-BE54-9A1E7A4F7557}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{C9A1C7DE-8098-4286-BA99-9F1AECC6FA12}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorPOS.Client.Tests", "tests\BlazorPOS.Client.Tests\BlazorPOS.Client.Tests.csproj", "{D63E53E4-A458-4C2F-914D-92F715F58E0F}"
-EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1B2B4C3D-5E6F-7A8B-9C0D-1E2F3A4B5C6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B2B4C3D-5E6F-7A8B-9C0D-1E2F3A4B5C6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B2B4C3D-5E6F-7A8B-9C0D-1E2F3A4B5C6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B2B4C3D-5E6F-7A8B-9C0D-1E2F3A4B5C6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C3D4E5F-6A7B-8C9D-0E1F-2A3B4C5D6E7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C3D4E5F-6A7B-8C9D-0E1F-2A3B4C5D6E7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C3D4E5F-6A7B-8C9D-0E1F-2A3B4C5D6E7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C3D4E5F-6A7B-8C9D-0E1F-2A3B4C5D6E7F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
