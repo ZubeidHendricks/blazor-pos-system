@@ -1,0 +1,99 @@
+@page "/"
+@using BlazorPOS.Client.Models
+@using BlazorPOS.Client.Services
+@inject IProductService ProductService
+@inject CartService CartService
+
+<div class="pos-container">
+    <div class="pos-left">
+        <!-- Product Search and Grid -->
+        <div class="search-box">
+            <input type="text" @bind-value="searchTerm" @bind-value:event="oninput" 
+                   placeholder="Search products..." class="form-control" />
+        </div>
+        
+        <div class="product-grid">
+            @if (products != null)
+            {
+                foreach (var product in filteredProducts)
+                {
+                    <div class="product-card" @onclick="() => AddToCart(product)">
+                        <h4>@product.Name</h4>
+                        <p>$@product.Price</p>
+                        <span class="stock">Stock: @product.Stock</span>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+    
+    <div class="pos-right">
+        <!-- Shopping Cart -->
+        <div class="cart">
+            <h3>Current Order</h3>
+            @foreach (var item in CartService.Items)
+            {
+                <div class="cart-item">
+                    <span>@item.Product.Name</span>
+                    <div class="quantity-controls">
+                        <button @onclick="() => DecreaseQuantity(item)">-</button>
+                        <span>@item.Quantity</span>
+                        <button @onclick="() => IncreaseQuantity(item)">+</button>
+                    </div>
+                    <span>$@item.Subtotal</span>
+                </div>
+            }
+            
+            <div class="cart-total">
+                <h4>Total: $@CartService.Total</h4>
+            </div>
+            
+            <div class="payment-buttons">
+                <button class="btn btn-success" @onclick="ProcessCashPayment">Cash</button>
+                <button class="btn btn-primary" @onclick="ProcessCardPayment">Card</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string searchTerm = "";
+    private List<Product> products;
+    private List<Product> filteredProducts => products?
+        .Where(p => string.IsNullOrEmpty(searchTerm) || 
+                    p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+        .ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await ProductService.GetProductsAsync();
+    }
+
+    private void AddToCart(Product product)
+    {
+        CartService.AddItem(product);
+    }
+
+    private void IncreaseQuantity(CartItem item)
+    {
+        CartService.UpdateQuantity(item, item.Quantity + 1);
+    }
+
+    private void DecreaseQuantity(CartItem item)
+    {
+        if (item.Quantity > 1)
+            CartService.UpdateQuantity(item, item.Quantity - 1);
+        else
+            CartService.RemoveItem(item);
+    }
+
+    private async Task ProcessCashPayment()
+    {
+        // TODO: Implement cash payment logic
+    }
+
+    private async Task ProcessCardPayment()
+    {
+        // TODO: Implement card payment logic
+    }
+}
