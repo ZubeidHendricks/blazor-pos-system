@@ -1,0 +1,112 @@
+@page "/"
+
+<div class="container-fluid pos-interface">
+    <div class="row">
+        <div class="col-md-8 product-grid">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Product Catalog</h3>
+                    <input type="text" class="form-control" placeholder="Search products..." />
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @foreach (var product in Products)
+                        {
+                            <div class="col-md-3 mb-3">
+                                <div class="card product-item" @onclick="() => AddToCart(product)">
+                                    <img src="@product.ImageUrl" class="card-img-top" alt="@product.Name">
+                                    <div class="card-body">
+                                        <h5 class="card-title">@product.Name</h5>
+                                        <p class="card-text">$@product.Price</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 cart-section">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Cart</h3>
+                </div>
+                <div class="card-body">
+                    @foreach (var item in CartItems)
+                    {
+                        <div class="cart-item d-flex justify-content-between align-items-center mb-2">
+                            <span>@item.Name</span>
+                            <span>$@item.Price</span>
+                            <button class="btn btn-sm btn-danger" @onclick="() => RemoveFromCart(item)">Remove</button>
+                        </div>
+                    }
+                    <hr />
+                    <div class="total d-flex justify-content-between">
+                        <strong>Total:</strong>
+                        <span>$@CalculateTotal()</span>
+                    </div>
+                    <button class="btn btn-primary btn-block mt-3" @onclick="Checkout">Checkout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Product> Products = new List<Product>
+    {
+        new Product { Id = 1, Name = "Coffee", Price = 3.50m, ImageUrl = "/images/coffee.jpg" },
+        new Product { Id = 2, Name = "Pastry", Price = 2.75m, ImageUrl = "/images/pastry.jpg" },
+        new Product { Id = 3, Name = "Sandwich", Price = 6.99m, ImageUrl = "/images/sandwich.jpg" }
+    };
+
+    private List<Product> CartItems = new List<Product>();
+
+    private void AddToCart(Product product)
+    {
+        CartItems.Add(product);
+    }
+
+    private void RemoveFromCart(Product product)
+    {
+        CartItems.Remove(product);
+    }
+
+    private decimal CalculateTotal()
+    {
+        return CartItems.Sum(item => item.Price);
+    }
+
+    private void Checkout()
+    {
+        // Implement checkout logic
+        CartItems.Clear();
+    }
+
+    public class Product
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public decimal Price { get; set; }
+        public string ImageUrl { get; set; }
+    }
+}
+
+<style>
+    .pos-interface {
+        background-color: #f4f4f4;
+        padding: 20px;
+    }
+    .product-item {
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .product-item:hover {
+        transform: scale(1.05);
+    }
+    .cart-section {
+        background-color: #fff;
+        border-radius: 8px;
+    }
+</style>
