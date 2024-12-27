@@ -1,3 +1,7 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 public class Startup
 {
     public IConfiguration Configuration { get; }
@@ -18,18 +22,31 @@ public class Startup
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
-        // Authentication
+        // JWT Authentication
         services.AddAuthentication(options =>
         {
-            options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         })
-        .AddCookie();
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = Configuration["Jwt:Issuer"],
+                ValidAudience = Configuration["Jwt:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(Configuration["Jwt:Key"]))
+            };
+        });
 
         // Services
+        services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IProductService, ProductService>();
         services.AddScoped<IAuthService, AuthService>();
-        services.AddScoped<IPaymentService, PaymentService>();
-        services.AddScoped<IReportingService, ReportingService>();
 
         // MVC and Blazor
         services.AddControllersWithViews();
