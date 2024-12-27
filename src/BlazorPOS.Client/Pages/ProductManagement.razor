@@ -1,0 +1,45 @@
+@page "/products"
+@inject IProductService ProductService
+@inject NavigationManager NavigationManager
+
+<h3>Product Management</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Barcode</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var product in products)
+        {
+            <tr>
+                <td>@product.Name</td>
+                <td>@product.Barcode</td>
+                <td>@product.Price.ToString("C")</td>
+                <td>@product.StockQuantity</td>
+                <td>
+                    <button @onclick="() => EditProduct(product.Id)">Edit</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Product> products = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await ProductService.GetAllProductsAsync();
+    }
+
+    private void EditProduct(int productId)
+    {
+        NavigationManager.NavigateTo($"/product/edit/{productId}");
+    }
+}
