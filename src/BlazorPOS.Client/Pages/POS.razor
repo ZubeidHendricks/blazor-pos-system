@@ -1,133 +1,26 @@
 @page "/"
-@using BlazorPOS.Client.Models
+@using BlazorPOS.Shared.Models
 @using BlazorPOS.Client.Services
-@using BlazorPOS.Client.Components
 @inject IProductService ProductService
-@inject CartService CartService
-@inject NavigationManager NavigationManager
 
-<div class="pos-container">
-    <div class="pos-left">
-        <!-- Product Search and Grid -->
-        <div class="search-box">
-            <input type="text" @bind-value="searchTerm" @bind-value:event="oninput" 
-                   placeholder="Search products..." class="form-control" />
-        </div>
-        
-        <div class="product-grid">
-            @if (products != null)
-            {
-                foreach (var product in filteredProducts)
-                {
-                    <div class="product-card" @onclick="() => AddToCart(product)">
-                        <h4>@product.Name</h4>
-                        <p>$@product.Price</p>
-                        <span class="stock">Stock: @product.Stock</span>
-                    </div>
-                }
-            }
-        </div>
-    </div>
-    
-    <div class="pos-right">
-        <!-- Shopping Cart -->
-        <div class="cart">
-            <h3>Current Order</h3>
-            @foreach (var item in CartService.Items)
-            {
-                <div class="cart-item">
-                    <span>@item.Product.Name</span>
-                    <div class="quantity-controls">
-                        <button @onclick="() => DecreaseQuantity(item)">-</button>
-                        <span>@item.Quantity</span>
-                        <button @onclick="() => IncreaseQuantity(item)">+</button>
-                    </div>
-                    <span>$@item.Subtotal</span>
-                </div>
-            }
-            
-            <div class="cart-total">
-                <h4>Total: $@CartService.Total</h4>
-            </div>
-            
-            <div class="payment-buttons">
-                <button class="btn btn-success" @onclick="ShowCashPayment">Cash</button>
-                <button class="btn btn-primary" @onclick="ShowCardPayment">Card</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<CashPaymentDialog 
-    IsVisible="@showCashDialog"
-    Amount="@CartService.Total"
-    OnPaymentComplete="HandlePaymentComplete"
-    OnCancel="() => showCashDialog = false" />
-
-<CardPaymentDialog 
-    IsVisible="@showCardDialog"
-    Amount="@CartService.Total"
-    OnPaymentComplete="HandlePaymentComplete"
-    OnCancel="() => showCardDialog = false" />
+<PageTitle>Point of Sale</PageTitle>
 
 @code {
-    private string searchTerm = "";
-    private List<Product> products;
-    private bool showCashDialog;
-    private bool showCardDialog;
+    private Shared.Models.Product? selectedProduct;
+    private List<Shared.Models.CartItem> cartItems = new();
 
-    private List<Product> filteredProducts => products?
-        .Where(p => string.IsNullOrEmpty(searchTerm) || 
-                    p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-        .ToList();
-
-    protected override async Task OnInitializedAsync()
+    private async Task SelectProduct(int productId)
     {
-        products = await ProductService.GetProductsAsync();
-    }
-
-    private void AddToCart(Product product)
-    {
-        CartService.AddItem(product);
-    }
-
-    private void IncreaseQuantity(CartItem item)
-    {
-        CartService.UpdateQuantity(item, item.Quantity + 1);
-    }
-
-    private void DecreaseQuantity(CartItem item)
-    {
-        if (item.Quantity > 1)
-            CartService.UpdateQuantity(item, item.Quantity - 1);
-        else
-            CartService.RemoveItem(item);
-    }
-
-    private void ShowCashPayment()
-    {
-        showCashDialog = true;
-    }
-
-    private void ShowCardPayment()
-    {
-        showCardDialog = true;
-    }
-
-    private async Task HandlePaymentComplete(bool success)
-    {
-        showCashDialog = false;
-        showCardDialog = false;
-
-        if (success)
+        selectedProduct = await ProductService.GetProductByIdAsync(productId);
+        if (selectedProduct != null)
         {
-            CartService.Clear();
-            await Task.Delay(500); // Give time for UI to update
-            NavigationManager.NavigateTo("/receipt");
-        }
-        else
-        {
-            // TODO: Show error message
+            var cartItem = new Shared.Models.CartItem
+            {
+                ProductId = selectedProduct.Id,
+                Product = selectedProduct,
+                Quantity = 1
+            };
+            cartItems.Add(cartItem);
         }
     }
 }
