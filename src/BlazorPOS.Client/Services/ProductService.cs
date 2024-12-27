@@ -1,16 +1,23 @@
 public class ProductService : IProductService
 {
+    private readonly HttpClient _httpClient;
+
+    public ProductService(HttpClient httpClient)
+    {
+        _httpClient = httpClient;
+    }
+
     public async Task<Shared.Models.Product> GetProductByIdAsync(int id)
     {
-        // Ensure this returns a non-null Product or throws an exception
-        var product = await /* your existing logic */;
+        // Replace with actual implementation
+        var product = await _httpClient.GetFromJsonAsync<Shared.Models.Product>($"api/products/{id}");
         return product ?? throw new InvalidOperationException($"Product with id {id} not found");
     }
 
     public async Task<Shared.Models.Product> GetProductByBarcodeAsync(string barcode)
     {
-        // Ensure this returns a non-null Product or throws an exception
-        var product = await /* your existing logic */;
+        // Replace with actual implementation
+        var product = await _httpClient.GetFromJsonAsync<Shared.Models.Product>($"api/products/barcode/{barcode}");
         return product ?? throw new InvalidOperationException($"Product with barcode {barcode} not found");
     }
 }
