@@ -1,0 +1,42 @@
+@page "/mfa-setup"
+@inject IMfaClientService MfaService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+
+<div class="mfa-setup-container">
+    @if (!string.IsNullOrEmpty(QrCodeUrl))
+    {
+        <h3>Set Up Two-Factor Authentication</h3>
+        <img src="@QrCodeUrl" alt="MFA QR Code" />
+        <EditForm Model="@verificationModel" OnValidSubmit="VerifyMfaCode">
+            <InputText @bind-Value="verificationModel.Code" placeholder="Enter verification code" />
+            <button type="submit">Verify</button>
+        </EditForm>
+    }
+</div>
+
+@code {
+    private string QrCodeUrl { get; set; }
+    private MfaVerificationDto verificationModel = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var userId = authState.User.FindFirst(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+        if (userId != null)
+        {
+            QrCodeUrl = await MfaService.GenerateMfaQrCodeAsync(userId);
+            verificationModel.UserId = userId;
+        }
+    }
+
+    private async Task VerifyMfaCode()
+    {
+        var result = await MfaService.VerifyMfaCodeAsync(verificationModel);
+        if (result)
+        {
+            NavigationManager.NavigateTo("/");
+        }
+    }
+}
