@@ -1,0 +1,92 @@
+@page "/inventory"
+@attribute [Authorize(Policy = "ViewInventory")]
+@inject IInventoryService InventoryService
+@inject AuthenticationStateProvider AuthStateProvider
+
+<div class="inventory-management">
+    <h3>Inventory Management</h3>
+
+    <section class="low-stock-products">
+        <h4>Low Stock Products</h4>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Current Stock</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var product in lowStockProducts)
+                {
+                    <tr>
+                        <td>@product.Name</td>
+                        <td>@product.StockQuantity</td>
+                        <td>
+                            <button @onclick="() => OpenStockAdjustmentModal(product)">Restock</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </section>
+
+    @if (selectedProduct != null)
+    {
+        <div class="stock-adjustment-modal">
+            <h4>Adjust Stock for @selectedProduct.Name</h4>
+            <input type="number" @bind="adjustmentQuantity" placeholder="Quantity" />
+            <input type="text" @bind="adjustmentNotes" placeholder="Notes" />
+            <button @onclick="PerformStockAdjustment">Confirm Adjustment</button>
+            <button @onclick="CancelAdjustment">Cancel</button>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Product> lowStockProducts = new();
+    private Product selectedProduct;
+    private int adjustmentQuantity;
+    private string adjustmentNotes = string.Empty;
+    private string userId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        userId = authState.User.FindFirst(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+        await LoadLowStockProducts();
+    }
+
+    private async Task LoadLowStockProducts()
+    {
+        lowStockProducts = await InventoryService.GetLowStockProductsAsync();
+    }
+
+    private void OpenStockAdjustmentModal(Product product)
+    {
+        selectedProduct = product;
+        adjustmentQuantity = 0;
+        adjustmentNotes = string.Empty;
+    }
+
+    private async Task PerformStockAdjustment()
+    {
+        if (selectedProduct != null && adjustmentQuantity != 0)
+        {
+            await InventoryService.AdjustInventoryAsync(
+                selectedProduct.Id, 
+                adjustmentQuantity, 
+                userId, 
+                adjustmentNotes);
+
+            await LoadLowStockProducts();
+            selectedProduct = null;
+        }
+    }
+
+    private void CancelAdjustment()
+    {
+        selectedProduct = null;
+    }
+}
