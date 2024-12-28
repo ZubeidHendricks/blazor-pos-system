@@ -1,17 +1,28 @@
-public void ConfigureServices(IServiceCollection services)
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 {
-    // Existing configurations...
+    // Add global exception middleware
+    app.UseMiddleware<GlobalExceptionMiddleware>();
 
-    // Authorization
-    services.AddAuthorization(options =>
+    if (env.IsDevelopment())
     {
-        options.AddPolicy("CreateSale", policy => 
-            policy.Requirements.Add(new PermissionRequirement("CreateSale")));
-        options.AddPolicy("ViewInventory", policy => 
-            policy.Requirements.Add(new PermissionRequirement("ViewInventory")));
-        options.AddPolicy("EditProduct", policy => 
-            policy.Requirements.Add(new PermissionRequirement("EditProduct")));
-    });
+        app.UseDeveloperExceptionPage();
+    }
+    else
+    {
+        app.UseExceptionHandler("/Error");
+        app.UseHsts();
+    }
 
-    services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
+    app.UseHttpsRedirection();
+    app.UseStaticFiles();
+    app.UseRouting();
+
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    app.UseEndpoints(endpoints =>
+    {
+        endpoints.MapBlazorHub();
+        endpoints.MapFallbackToPage("/_Host");
+    });
 }
