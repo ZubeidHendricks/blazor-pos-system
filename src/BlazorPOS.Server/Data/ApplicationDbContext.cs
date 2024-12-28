@@ -9,6 +9,12 @@ namespace BlazorPOS.Server.Data
         public DbSet<Product> Products { get; set; }
         public DbSet<Sale> Sales { get; set; }
         public DbSet<Inventory> Inventories { get; set; }
+        public DbSet<SecurityAuditLog> SecurityAuditLogs { get; set; }
+
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+            : base(options)
+        {
+        }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -18,10 +24,8 @@ namespace BlazorPOS.Server.Data
                 .HasIndex(p => p.Barcode)
                 .IsUnique();
 
-            builder.Entity<Sale>()
-                .HasOne(s => s.User)
-                .WithMany()
-                .HasForeignKey(s => s.UserId);
+            builder.Entity<SecurityAuditLog>()
+                .HasIndex(log => log.UserId);
         }
     }
 }

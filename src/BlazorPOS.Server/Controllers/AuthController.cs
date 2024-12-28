@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using BlazorPOS.Shared.Dtos;
-using BlazorPOS.Shared.Models;
+using System.Net;
 
 namespace BlazorPOS.Server.Controllers
 {
@@ -11,15 +10,18 @@ namespace BlazorPOS.Server.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ITokenService _tokenService;
+        private readonly ISecurityAuditService _auditService;
 
         public AuthController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            ITokenService tokenService)
+            ITokenService tokenService,
+            ISecurityAuditService auditService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService;
+            _auditService = auditService;
         }
 
         [HttpPost("login")]
@@ -28,59 +30,26 @@ namespace BlazorPOS.Server.Controllers
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
-                return Unauthorized(new AuthResponseDto
-                {
-                    IsSuccess = false,
-                    ErrorMessage = "Invalid login attempt."
-                });
+                await _auditService.LogLoginAttempt(null, GetIpAddress(), false);
+                return Unauthorized(new AuthResponseDto { ErrorMessage = "Invalid login attempt." });
             }
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, lockoutOnFailure: true);
             if (result.Succeeded)
             {
                 var token = _tokenService.GenerateJwtToken(user);
-                return Ok(new AuthResponseDto
-                {
-                    IsSuccess = true,
-                    Token = token
-                });
+                await _auditService.LogLoginAttempt(user.Id, GetIpAddress(), true);
+
+                return Ok(new AuthResponseDto { Token = token, IsSuccess = true });
             }
 
-            return Unauthorized(new AuthResponseDto
-            {
-                IsSuccess = false,
-                ErrorMessage = "Invalid login attempt."
-            });
+            await _auditService.LogLoginAttempt(user.Id, GetIpAddress(), false);
+            return Unauthorized(new AuthResponseDto { ErrorMessage = "Invalid login attempt." });
         }
 
-        [HttpPost("register")]
-        public async Task<ActionResult<AuthResponseDto>> Register([FromBody] RegisterDto model)
+        private string GetIpAddress()
         {
-            var user = new ApplicationUser
-            {
-                UserName = model.Email,
-                Email = model.Email,
-                FirstName = model.FirstName,
-                LastName = model.LastName,
-                Role = model.Role
-            };
-
-            var result = await _userManager.CreateAsync(user, model.Password);
-            if (result.Succeeded)
-            {
-                var token = _tokenService.GenerateJwtToken(user);
-                return Ok(new AuthResponseDto
-                {
-                    IsSuccess = true,
-                    Token = token
-                });
-            }
-
-            return BadRequest(new AuthResponseDto
-            {
-                IsSuccess = false,
-                ErrorMessage = string.Join(", ", result.Errors.Select(e => e.Description))
-            });
+            return HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
         }
     }
 }
