@@ -1,0 +1,81 @@
+@page "/"
+@attribute [Authorize]
+@inject HttpClient HttpClient
+
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h2>POS Dashboard</h2>
+    </div>
+
+    <div class="dashboard-stats">
+        <div class="stat-card">
+            <h3>Today's Revenue</h3>
+            <p>@dashboardSummary?.TodayRevenue.ToString("C")</p>
+        </div>
+        <div class="stat-card">
+            <h3>Today's Sales</h3>
+            <p>@dashboardSummary?.TodaySalesCount</p>
+        </div>
+        <div class="stat-card">
+            <h3>Month to Date Revenue</h3>
+            <p>@dashboardSummary?.MonthToDateRevenue.ToString("C")</p>
+        </div>
+    </div>
+
+    <div class="dashboard-sections">
+        <div class="recent-sales">
+            <h3>Recent Sales</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sale ID</th>
+                        <th>User</th>
+                        <th>Total Amount</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var sale in dashboardSummary?.RecentSales ?? new())
+                    {
+                        <tr>
+                            <td>@sale.SaleId</td>
+                            <td>@sale.UserName</td>
+                            <td>@sale.TotalAmount.ToString("C")</td>
+                            <td>@sale.SaleDate.ToString("g")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="low-stock-alerts">
+            <h3>Low Stock Alerts</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Current Stock</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var alert in dashboardSummary?.LowStockAlerts ?? new())
+                    {
+                        <tr>
+                            <td>@alert.ProductName</td>
+                            <td>@alert.CurrentStock</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@code {
+    private DashboardSummary dashboardSummary;
+
+    protected override async Task OnInitializedAsync()
+    {
+        dashboardSummary = await HttpClient.GetFromJsonAsync<DashboardSummary>("api/dashboard");
+    }
+}
