@@ -1,0 +1,122 @@
+@page "/sales"
+@attribute [Authorize(Policy = "CreateSale")]
+@inject ISaleService SaleService
+@inject IProductService ProductService
+@inject AuthenticationStateProvider AuthStateProvider
+
+<div class="sales-container">
+    <h3>Point of Sale</h3>
+
+    <div class="product-search">
+        <input type="text" @bind="barcode" @onkeyup="SearchProductByBarcode" placeholder="Scan/Enter Barcode" />
+    </div>
+
+    <table class="cart-items">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Total</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in cartItems)
+            {
+                <tr>
+                    <td>@item.Product.Name</td>
+                    <td>@item.Product.Price.ToString("C")</td>
+                    <td>
+                        <input type="number" @bind="item.Quantity" min="1" />
+                    </td>
+                    <td>@(item.Product.Price * item.Quantity).ToString("C")</td>
+                    <td>
+                        <button @onclick="() => RemoveCartItem(item)">Remove</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="sale-summary">
+        <h4>Total: @CalculateTotal().ToString("C")</h4>
+        <button @onclick="ProcessSale" disabled="@(cartItems.Count == 0)">Complete Sale</button>
+    </div>
+</div>
+
+@code {
+    private string barcode = string.Empty;
+    private List<SaleItem> cartItems = new();
+    private string userId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        userId = authState.User.FindFirst(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+    }
+
+    private async Task SearchProductByBarcode(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(barcode))
+        {
+            var product = await ProductService.GetProductByBarcodeAsync(barcode);
+            if (product != null)
+            {
+                AddProductToCart(product);
+                barcode = string.Empty;
+            }
+        }
+    }
+
+    private void AddProductToCart(Product product)
+    {
+        var existingItem = cartItems.FirstOrDefault(i => i.ProductId == product.Id);
+        if (existingItem != null)
+        {
+            existingItem.Quantity++;
+        }
+        else
+        {
+            cartItems.Add(new SaleItem
+            {
+                ProductId = product.Id,
+                Product = product,
+                Quantity = 1,
+                UnitPrice = product.Price
+            });
+        }
+    }
+
+    private void RemoveCartItem(SaleItem item)
+    {
+        cartItems.Remove(item);
+    }
+
+    private decimal CalculateTotal()
+    {
+        return cartItems.Sum(item => item.Product.Price * item.Quantity);
+    }
+
+    private async Task ProcessSale()
+    {
+        var sale = new Sale
+        {
+            UserId = userId,
+            Items = cartItems,
+            TotalAmount = CalculateTotal(),
+            SaleDate = DateTime.UtcNow,
+            Status = SaleStatus.Completed
+        };
+
+        try
+        {
+            await SaleService.CreateSaleAsync(sale);
+            cartItems.Clear();
+        }
+        catch (Exception ex)
+        {
+            // Handle sale processing error
+        }
+    }
+}
