@@ -1,0 +1,36 @@
+@inherits ErrorBoundary
+
+@if (ErrorContent != null)
+{
+    <div class="error-container">
+        <div class="error-message">
+            <h3>Oops! Something went wrong</h3>
+            <p>@ErrorContent</p>
+            <button @onclick="Recover">Try Again</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    private string ErrorContent { get; set; }
+
+    protected override void OnInitialized()
+    {
+        ErrorBoundary.ErrorChanged += HandleErrorChanged;
+    }
+
+    private void HandleErrorChanged(Exception exception)
+    {
+        ErrorContent = exception.Message;
+        StateHasChanged();
+    }
+
+    private void Recover()
+    {
+        ErrorContent = null;
+        ErrorBoundary.Recover();
+    }
+}
