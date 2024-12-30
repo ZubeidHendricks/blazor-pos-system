@@ -1,0 +1,90 @@
+name: AI Development Pipeline
+
+on:
+  issues:
+    types: [opened, labeled]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue number to process'
+        required: true
+
+jobs:
+  check-label:
+    runs-on: ubuntu-latest
+    outputs:
+      is-ai-task: ${{ steps.check.outputs.is_ai_task }}
+    steps:
+      - id: check
+        if: github.event_name == 'issues'
+        run: |
+          if [[ "${{ contains(github.event.issue.labels.*.name, 'ai-development') }}" == "true" ]]; then
+            echo "is_ai_task=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_ai_task=false" >> $GITHUB_OUTPUT
+          fi
+
+  analyze-task:
+    needs: check-label
+    if: needs.check-label.outputs.is-ai-task == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
+      - name: Analyze requirements
+        env:
+          GITHUB_TOKEN: ${{ secrets.GHUB_TOKEN }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: python src/handlers/task_analyzer.py
+
+  generate-code:
+    needs: analyze-task
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
+      - name: Generate code
+        env:
+          GITHUB_TOKEN: ${{ secrets.GHUB_TOKEN }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python src/main.py
+        
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GHUB_TOKEN }}
+          commit-message: "AI-generated code for issue #${{ github.event.issue.number }}"
+          title: "Feature: ${{ github.event.issue.title }}"
+          body: |
+            Automated PR for issue #${{ github.event.issue.number }}
+            
+            Generated code includes:
+            - Implementation
+            - Tests
+            - Documentation
+            
+            Please review the changes.
+          branch: feature/issue-${{ github.event.issue.number }}
+          base: main
+          labels: ai-generated, needs-review
