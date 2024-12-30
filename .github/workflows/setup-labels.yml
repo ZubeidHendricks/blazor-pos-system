@@ -1,0 +1,112 @@
+name: Setup Repository Labels
+
+on:
+  workflow_dispatch:
+
+jobs:
+  create-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create labels
+        uses: actions/github-script@v6
+        with:
+          script: |
+            // Priority labels
+            await github.rest.issues.createLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'priority-high',
+              color: 'B60205',
+              description: 'High priority task'
+            });
+            
+            await github.rest.issues.createLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'priority-medium',
+              color: 'FBCA04',
+              description: 'Medium priority task'
+            });
+            
+            await github.rest.issues.createLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'priority-low',
+              color: '0E8A16',
+              description: 'Low priority task'
+            });
+            
+            // Type labels
+            await github.rest.issues.createLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'frontend',
+              color: '1D76DB',
+              description: 'Frontend development task'
+            });
+            
+            await github.rest.issues.createLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'backend',
+              color: '8B00FF',
+              description: 'Backend development task'
+            });
+            
+            await github.rest.issues.createLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'database',
+              color: '8B4513',
+              description: 'Database related task'
+            });
+            
+            // Status labels
+            await github.rest.issues.createLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'ai-development',
+              color: '7057FF',
+              description: 'Task for AI development pipeline'
+            });
+            
+            await github.rest.issues.createLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'in-progress',
+              color: '9B2C2C',
+              description: 'Task in progress'
+            });
+            
+            await github.rest.issues.createLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'needs-review',
+              color: 'F9D0C4',
+              description: 'Ready for review'
+            });
+            
+            // Category labels
+            await github.rest.issues.createLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'feature',
+              color: '0052CC',
+              description: 'New feature'
+            });
+            
+            await github.rest.issues.createLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'bug',
+              color: 'D73A4A',
+              description: 'Something is not working'
+            });
+            
+            await github.rest.issues.createLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'enhancement',
+              color: 'A2EEEF',
+              description: 'Enhancement to existing feature'
+            });
